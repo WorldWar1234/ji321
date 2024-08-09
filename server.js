@@ -14,15 +14,19 @@ const server = http.createServer(async (req, res) => {
 
   if (pathname === '/') {
     const paramsObj = params(req, res);
+    if (!paramsObj) {
+      return;
+    }
+
     const url = paramsObj.url;
 
     try {
       const response = await fetch(url, {
         timeout: 10000,
-        redirect: 'follow',
+      //  redirect: 'follow',
         maxRedirects: 5,
-        compress: true,
-        //agent: new https.Agent({ rejectUnauthorized: false }),
+      //  compress: true,
+       // agent: new https.Agent({ rejectUnauthorized: false }),
       });
       const arrayBuffer = await response.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
@@ -31,9 +35,12 @@ const server = http.createServer(async (req, res) => {
       paramsObj.originSize = buffer.length;
 
       if (shouldCompress(paramsObj)) {
-        compress(paramsObj, res, buffer);
+        req.params = paramsObj;
+        req.buffer = buffer;
+        compress(req, res);
       } else {
-        redirect(paramsObj, res);
+        req.params = paramsObj;
+        redirect(req, res);
       }
     } catch (error) {
       console.error(error);
