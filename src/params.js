@@ -1,21 +1,19 @@
+const url = require('url');
 const DEFAULT_QUALITY = 40;
 
-function params(req, res, next) {
-  const { url, jpeg, bw, l, quality } = req.query;
+function params(req) {
+  const parsedUrl = url.parse(req.url, true);
+  const query = parsedUrl.query;
 
-  if (!url) {
-    return res.end('bandwidth-hero-proxy');
-  }
+  let url = query.url;
+  if (!url) throw new Error('URL parameter is required');
 
-  const urls = Array.isArray(url) ? url.join('&url=') : url;
-  const cleanedUrl = urls.replace(/http:\/\/1\.1\.\d\.\d\/bmi\/(https?:\/\/)?/i, 'http://');
+  url = decodeURIComponent(url);
+  const webp = !query.jpeg;
+  const grayscale = query.bw != 0;
+  const quality = parseInt(query.l, 10) || DEFAULT_QUALITY;
 
-  req.params.url = cleanedUrl;
-  req.params.webp = !jpeg;
-  req.params.grayscale = bw !== '0';
-  req.params.quality = parseInt(quality, 10) || DEFAULT_QUALITY;
-
-  next();
+  return { url, webp, grayscale, quality };
 }
 
 module.exports = params;
