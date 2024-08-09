@@ -22,7 +22,7 @@ const server = http.createServer(async (req, res) => {
         redirect: 'follow',
         maxRedirects: 5,
         compress: true,
-        agent: new https.Agent({ rejectUnauthorized: false }),
+        //agent: new https.Agent({ rejectUnauthorized: false }),
       });
       const arrayBuffer = await response.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
