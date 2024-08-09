@@ -1,27 +1,32 @@
-const Jimp = require('jimp');
+const sharp = require('sharp');
 const redirect = require('./redirect');
 
-async function compress(req, res, input) {
-  const format = req.params.webp ? Jimp.MIME_WEBP : Jimp.MIME_JPEG;
-  const quality = req.params.quality;
+function compress(params, res, input) {
+  const format = params.webp ? 'webp' : 'jpeg';
 
-  try {
-    const image = await Jimp.read(input);
+  sharp(input)
+    .grayscale(params.grayscale)
+    .toFormat(format, {
+      quality: params.quality,
+      progressive: true,
+      optimizeScans: true,
+    })
+    .toBuffer((err, output, info) => {
+      if (err || !info) {
+        return redirect(params, res);
+      }
 
-    if (req.params.grayscale) {
-      image.greyscale();
-    }
-
-    const output = await image.getBufferAsync(format, { quality });
-
-    res.setHeader('content-type', format);
-    res.setHeader('content-length', output.length);
-    res.setHeader('x-original-size', req.params.originSize);
-    res.setHeader('x-bytes-saved', req.params.originSize - output.length);
-    res.status(200).send(output);
-  } catch (err) {
-    return redirect(req, res);
-  }
+      res.setHeader('content-type', `image/${format}`);
+      res.setHeader('content-length', info.size);
+      res.setHeader('x-original-size', params.originSize);
+      res.setHeader('x-bytes-saved', params.originSize - info.size);
+      res.setHeader('content-encoding', 'identity');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+      res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
+      res.writeHead(200);
+      res.end(output);
+    });
 }
 
 module.exports = compress;
