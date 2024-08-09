@@ -6,7 +6,9 @@ function params(req) {
   const query = parsedUrl.query;
 
   let url = query.url;
-  if (!url) throw new Error('URL parameter is required');
+  if (!url) {
+    return res.end('bandwidth-hero-proxy');
+  }
 
   url = decodeURIComponent(url);
   const webp = !query.jpeg;
