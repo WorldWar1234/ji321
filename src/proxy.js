@@ -12,8 +12,9 @@ function proxy(req, res) {
     {
       headers: {
         ...pick(req.headers, ['cookie', 'dnt', 'referer']),
-        'user-agent': 'Mozilla/5.0 (X11; Fedora; Linux x86_64; en-AU; rv:126.0) Gecko/20220911 Firefox/126.0',
-        'x-forwarded-for': req.headers['x-forwarded-for']
+        'user-agent': 'Bandwidth-Hero Compressor',
+        'x-forwarded-for': req.headers['x-forwarded-for'] || req.ip,
+        via: '1.1 bandwidth-hero'
       },
       timeout: 10000,
       maxRedirects: 5,
@@ -22,7 +23,7 @@ function proxy(req, res) {
       gzip: true,
       jar: true
     },
-    (err, origin, buffer) => {
+    async (err, origin, buffer) => {
       if (err || origin.statusCode >= 400) {
         return redirect(req, res);
       }
@@ -33,7 +34,7 @@ function proxy(req, res) {
       req.params.originSize = buffer.length;
 
       if (shouldCompress(req)) {
-        compress(req, res, buffer);
+        await compress(req, res, buffer);
       } else {
         bypass(req, res, buffer);
       }
