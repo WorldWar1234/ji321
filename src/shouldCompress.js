@@ -1,8 +1,8 @@
 const MIN_COMPRESS_LENGTH = 512;
 const MIN_TRANSPARENT_COMPRESS_LENGTH = MIN_COMPRESS_LENGTH * 100;
 
-function shouldCompress(params) {
-  const { originType, originSize, webp } = params;
+function shouldCompress(req) {
+  const { originType, originSize, webp } = req.params;
 
   if (!originType.startsWith('image')) {
     return false;
