@@ -1,25 +1,26 @@
 const sharp = require('sharp');
 const redirect = require('./redirect');
 
-function compress(params, res, input) {
-  const format = params.webp ? 'webp' : 'jpeg';
+function compress(req, res) {
+  const { url, webp, grayscale, quality } = req.params;
+  const format = webp ? 'webp' : 'jpeg';
 
-  sharp(input)
-    .grayscale(params.grayscale)
+  sharp(req.buffer)
+    .grayscale(grayscale)
     .toFormat(format, {
-      quality: params.quality,
+      quality: quality,
       progressive: true,
       optimizeScans: true,
     })
     .toBuffer((err, output, info) => {
       if (err || !info) {
-        return redirect(params, res);
+        return redirect(req, res);
       }
 
       res.setHeader('content-type', `image/${format}`);
       res.setHeader('content-length', info.size);
-      res.setHeader('x-original-size', params.originSize);
-      res.setHeader('x-bytes-saved', params.originSize - info.size);
+      res.setHeader('x-original-size', req.params.originSize);
+      res.setHeader('x-bytes-saved', req.params.originSize - info.size);
       res.setHeader('content-encoding', 'identity');
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
